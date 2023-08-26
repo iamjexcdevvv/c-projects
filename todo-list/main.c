@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+// TODO - Fix removing node at position 1 program crash
+
 struct node
 {
     char data[32 + 1];
@@ -22,7 +24,19 @@ void todo_remove_node(struct node **head, int position_to_remove)
     }
     else
     {
-        // TODO - Remove specific task
+        struct node *temp_ptr = *head;
+        struct node *prev_ptr = NULL;
+
+        int current_pos = 1;
+        while (current_pos != position_to_remove)
+        {
+            prev_ptr = temp_ptr;
+            temp_ptr = temp_ptr->link;
+            current_pos++;
+        }
+        prev_ptr->link = temp_ptr->link;
+        free(temp_ptr);
+        temp_ptr = NULL;
     }
 }
 
@@ -95,8 +109,6 @@ struct node *todo_load_task(FILE *file)
         current_line++;
     }
 
-    todo_task_display(head);
-
     return head;
 }
 
@@ -145,7 +157,6 @@ void get_user_input(int operation)
         scanf(" %d", &position);
 
         todo_remove_node(&head, position);
-        // todo_task_display(head);
 
         fclose(fptr);
     }
