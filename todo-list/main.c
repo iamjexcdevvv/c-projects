@@ -11,8 +11,11 @@ struct node
     struct node *link;
 };
 
-void todo_remove_node(struct node **head, int position_to_remove)
+void todo_remove_task(struct node **head, int position_to_remove)
 {
+    struct node *temp_ptr = *head;
+    struct node *prev_ptr = NULL;
+
     if (*head == NULL)
     {
         printf("Task list is empty!\n");
@@ -22,11 +25,14 @@ void todo_remove_node(struct node **head, int position_to_remove)
         free(*head);
         *head = NULL;
     }
+    else if (position_to_remove == 1)
+    {
+        *head = (*head)->link;
+        free(temp_ptr);
+        temp_ptr = NULL;
+    }
     else
     {
-        struct node *temp_ptr = *head;
-        struct node *prev_ptr = NULL;
-
         int current_pos = 1;
         while (current_pos != position_to_remove)
         {
@@ -59,7 +65,7 @@ void todo_add_node(char task[], struct node **tail, struct node *head)
 void todo_save(char task[])
 {
     FILE *fptr;
-    fptr = fopen("D:/DSA/projects/todo-list/database/todo-list.txt", "a");
+    fptr = fopen("D:/DSA/projects/todo-list/database/data.txt", "a");
     fprintf(fptr, "%s", task);
     fclose(fptr);
 }
@@ -79,8 +85,16 @@ void todo_task_display(struct node *head)
     }
 }
 
-struct node *todo_load_task(FILE *file)
+struct node *todo_load_task()
 {
+    FILE *file = fopen("D:/DSA/projects/todo-list/database/data.txt", "r");
+
+    if (file == NULL)
+    {
+        printf("The specified file cannot be read!\n");
+        exit(EXIT_FAILURE);
+    }
+
     char task[32 + 1];
 
     struct node *head = (struct node *)malloc(sizeof(struct node));
@@ -109,7 +123,41 @@ struct node *todo_load_task(FILE *file)
         current_line++;
     }
 
+    fclose(file);
+
     return head;
+}
+
+void todo_remove_from_file(int line_to_remove)
+{
+    FILE *source_file = fopen("D:/DSA/projects/todo-list/database/data.txt", "r");
+    char task[32 + 1];
+    FILE *temp_file = fopen("D:/DSA/projects/todo-list/database/temp.txt", "w");
+    int current_line = 1;
+
+    if (source_file == NULL)
+    {
+        printf("Cannot open the specified file!");
+        exit(EXIT_SUCCESS);
+    }
+
+    while (fgets(task, sizeof(task), source_file))
+    {
+        if (current_line == line_to_remove)
+        {
+            current_line++;
+            continue;
+        }
+
+        fprintf(temp_file, "%s", task);
+        current_line++;
+    }
+
+    fclose(source_file);
+    fclose(temp_file);
+
+    remove("todo-list/database/data.txt");
+    rename("todo-list/database/temp.txt", "todo-list/database/data.txt");
 }
 
 void get_user_input(int operation)
@@ -126,39 +174,22 @@ void get_user_input(int operation)
     }
     else if (operation == 2)
     {
-        FILE *fptr = fopen("D:/DSA/projects/todo-list/database/todo-list.txt", "r");
-
-        if (fptr == NULL)
-        {
-            printf("The specified file cannot be read!\n");
-            exit(EXIT_FAILURE);
-        }
-
-        struct node *head = todo_load_task(fptr);
+        struct node *head = todo_load_task();
         todo_task_display(head);
-        fclose(fptr);
     }
     else if (operation == 3)
     {
-        FILE *fptr = fopen("D:/DSA/projects/todo-list/database/todo-list.txt", "r");
-
-        if (fptr == NULL)
-        {
-            printf("The specified file cannot be read!\n");
-            exit(EXIT_FAILURE);
-        }
-
         int position;
 
-        struct node *head = todo_load_task(fptr);
+        struct node *head = todo_load_task();
         todo_task_display(head);
 
         printf("Please enter the position of a task you want to remove:\t");
         scanf(" %d", &position);
 
-        todo_remove_node(&head, position);
-
-        fclose(fptr);
+        todo_remove_from_file(position);
+        todo_remove_task(&head, position);
+        todo_task_display(head);
     }
     else
     {
