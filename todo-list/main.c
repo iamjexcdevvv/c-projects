@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-// TODO - Fix removing node at position 1 program crash
+#define FILE_PATH "D:/DSA/projects/todo-list/database/data.txt"
 
 struct node
 {
@@ -65,13 +65,21 @@ void todo_add_node(char task[], struct node **tail, struct node *head)
 void todo_save(char task[])
 {
     FILE *fptr;
-    fptr = fopen("D:/DSA/projects/todo-list/database/data.txt", "a");
+    fptr = fopen(FILE_PATH, "a");
     fprintf(fptr, "%s", task);
     fclose(fptr);
+
+    printf("Task has been succesfully saved\n");
 }
 
 void todo_task_display(struct node *head)
 {
+    if (head == NULL)
+    {
+        printf("No task found\n");
+        exit(EXIT_SUCCESS);
+    }
+
     struct node *node_ptr = head;
     int position = 1;
 
@@ -87,7 +95,7 @@ void todo_task_display(struct node *head)
 
 struct node *todo_load_task()
 {
-    FILE *file = fopen("D:/DSA/projects/todo-list/database/data.txt", "r");
+    FILE *file = fopen(FILE_PATH, "r");
 
     if (file == NULL)
     {
@@ -97,7 +105,7 @@ struct node *todo_load_task()
 
     char task[32 + 1];
 
-    struct node *head = (struct node *)malloc(sizeof(struct node));
+    struct node *head = NULL;
     struct node *tail = NULL;
 
     int current_line = 1;
@@ -113,6 +121,7 @@ struct node *todo_load_task()
 
         if (current_line == 1)
         {
+            head = (struct node *)malloc(sizeof(struct node));
             strcpy(head->data, task);
             head->link = NULL;
         }
@@ -130,7 +139,7 @@ struct node *todo_load_task()
 
 void todo_remove_from_file(int line_to_remove)
 {
-    FILE *source_file = fopen("D:/DSA/projects/todo-list/database/data.txt", "r");
+    FILE *source_file = fopen(FILE_PATH, "r");
     char task[32 + 1];
     FILE *temp_file = fopen("D:/DSA/projects/todo-list/database/temp.txt", "w");
     int current_line = 1;
@@ -156,8 +165,8 @@ void todo_remove_from_file(int line_to_remove)
     fclose(source_file);
     fclose(temp_file);
 
-    remove("todo-list/database/data.txt");
-    rename("todo-list/database/temp.txt", "todo-list/database/data.txt");
+    remove(FILE_PATH);
+    rename("todo-list/database/temp.txt", FILE_PATH);
 }
 
 void get_user_input(int operation)
